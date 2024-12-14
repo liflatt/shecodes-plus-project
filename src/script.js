@@ -1,4 +1,5 @@
 function currentWeather(response) {
+  let cityElement = document.querySelector("#current-city-display");
   let temperatureElement = document.querySelector(
     "#current-temp-number-display"
   );
@@ -15,6 +16,9 @@ function currentWeather(response) {
   windElement.innerHTML = `${response.data.wind.speed}mph`;
   iconElement.innerHTML = `<img src="${response.data.condition.icon_url}" class="current-temp-emoji" />`;
   timeElement.innerHTML = formatDate(date);
+  cityElement.innerHTML = response.data.city;
+
+  getForecast(response.data.city);
 }
 
 function formatDate(date) {
@@ -37,8 +41,8 @@ function formatDate(date) {
     "Jun",
     "Jul",
     "Aug",
-    "Oct",
     "Sep",
+    "Oct",
     "Nov",
     "Dec",
   ];
@@ -55,6 +59,20 @@ function formatDate(date) {
   return `${day}, ${month} ${dayOfMonth}, ${hour}:${minutes}`;
 }
 
+function searchCity(city) {
+  let apiKey = "b0452f91cd75631eoba398t0f42a2100";
+  let apiUrl = `https://api.shecodes.io/weather/v1/current?query=${city}&key=${apiKey}&units=imperial`;
+
+  axios.get(apiUrl).then(currentWeather);
+}
+
+function handleSearch(event) {
+  event.preventDefault();
+  let searchInput = document.querySelector("#search-input");
+
+  searchCity(searchInput.value);
+}
+
 function formatDay(timestamp) {
   let date = new Date(timestamp * 1000);
   let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -62,19 +80,42 @@ function formatDay(timestamp) {
   return days[date.getDay()];
 }
 
-function search(event) {
-  event.preventDefault();
-  let searchInput = document.querySelector("#search-input");
-
-  let cityDisplay = document.querySelector("#current-city-display");
-  cityDisplay.innerHTML = searchInput.value;
-  let city = `${searchInput.value}`;
-
+function getForecast(city) {
   let apiKey = "b0452f91cd75631eoba398t0f42a2100";
-  let apiUrl = `https://api.shecodes.io/weather/v1/current?query=${city}&key=${apiKey}&units=imperial`;
+  let apiUrl = `https://api.shecodes.io/weather/v1/forecast?query=${city}&key=${apiKey}`;
+  axios(apiUrl).then(showForecast);
+}
 
-  axios.get(apiUrl).then(currentWeather);
+function showForecast(response) {
+  let forecastHtml = "";
+
+  response.data.daily.forEach(function (day, index) {
+    if (index < 5) {
+      forecastHtml =
+        forecastHtml +
+        `
+      <div class="weather-forecast-day">
+        <div class="weather-forecast-date">${formatDay(day.time)}</div>
+        
+        <img src="${day.condition.icon_url}" class="weather-forecast-icon" />
+        <div class="weather-forecast-temperatures">
+          <div class="weather-forecast-temperature">
+            <strong>${Math.round(day.temperature.maximum)}º</strong>
+          </div>
+          <div class="weather-forecast-temperature">${Math.round(
+            day.temperature.minimum
+          )}º</div>
+        </div>
+      </div>
+    `;
+    }
+  });
+
+  let forecastElement = document.querySelector("#forecast");
+  forecastElement.innerHTML = forecastHtml;
 }
 
 let searchForm = document.querySelector("#search-form");
-searchForm.addEventListener("submit", search);
+searchForm.addEventListener("submit", handleSearch);
+
+searchCity("Fort Worth");
