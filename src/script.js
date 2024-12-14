@@ -1,10 +1,4 @@
 function currentWeather(response) {
-  console.log(response);
-  let temperature = Math.round(response.data.temperature.current);
-  let humidity = response.data.temperature.humidity;
-  let wind = response.data.wind.speed;
-  let description = response.data.condition.description;
-
   let temperatureElement = document.querySelector(
     "#current-temp-number-display"
   );
@@ -12,13 +6,17 @@ function currentWeather(response) {
   let humidityElement = document.querySelector("#humidity");
   let windElement = document.querySelector("#wind");
   let iconElement = document.querySelector("#icon");
+  let timeElement = document.querySelector("#current-time");
+  let date = new Date(response.data.time * 1000);
 
-  temperatureElement.innerHTML = `${temperature}`;
-  humidityElement.innerHTML = `${humidity}%`;
-  windElement.innerHTML = `${wind}mph`;
-  descriptionElement.innerHTML = `${description}`;
+  temperatureElement.innerHTML = Math.round(response.data.temperature.current);
+  descriptionElement.innerHTML = response.data.condition.description;
+  humidityElement.innerHTML = `${response.data.temperature.humidity}%`;
+  windElement.innerHTML = `${response.data.wind.speed}mph`;
   iconElement.innerHTML = `<img src="${response.data.condition.icon_url}" class="current-temp-emoji" />`;
+  timeElement.innerHTML = formatDate(date);
 }
+
 function formatDate(date) {
   let days = [
     "Sunday",
@@ -29,21 +27,40 @@ function formatDate(date) {
     "Friday",
     "Saturday",
   ];
-  let currentDay = days[date.getDay()];
-  let currentHour = date.getHours();
-  let currentMinutes = date.getMinutes();
 
-  // Add leading zero to minutes if less than 10
-  if (currentMinutes < 10) {
-    currentMinutes = `0${currentMinutes}`;
+  let months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Oct",
+    "Sep",
+    "Nov",
+    "Dec",
+  ];
+
+  let day = days[date.getDay()];
+  let dayOfMonth = date.getDate();
+  let month = months[date.getMonth()];
+  let hour = date.getHours();
+  let minutes = date.getMinutes();
+
+  if (minutes < 10) {
+    minutes = `0${minutes}`;
   }
-
-  let formattedTime = `${currentDay} ${currentHour}:${currentMinutes}`;
-  return formattedTime;
+  return `${day}, ${month} ${dayOfMonth}, ${hour}:${minutes}`;
 }
-let currentTime = new Date();
-let timeNow = document.querySelector("#current-time");
-timeNow.innerHTML = formatDate(currentTime);
+
+function formatDay(timestamp) {
+  let date = new Date(timestamp * 1000);
+  let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  return days[date.getDay()];
+}
 
 function search(event) {
   event.preventDefault();
